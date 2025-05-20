@@ -100,11 +100,11 @@ try:
             session.sql(my_insert_stmt, (name_on_order, ingredients_string)).collect()
             st.success(f"Your Smoothie '{name_on_order}' is ordered!", icon="✅")
 
-    # # Optional: Fetching fruit data from external API
-    # smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-    # if smoothiefroot_response.status_code == 200:
-    #     st.write("Fruit API Response:", smoothiefroot_response.json())
-    # else:
-    #     st.error("Failed to fetch data from the fruit API.")
+    # Optional: Fetching fruit data from external API
+    smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+    if smoothiefroot_response.status_code == 200:
+        st.write("Fruit API Response:", smoothiefroot_response.json())
+    else:
+        st.error("Failed to fetch data from the fruit API.")
 except Exception as e:
     st.error(f"An error occurred: {e}")
