@@ -5,41 +5,61 @@ import pandas as pd
 import requests
 
 # Write directly to the app
-st.title(f":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
+st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
 st.write("Choose the fruits you want in your custom Smoothie!")
 
 name_on_order = st.text_input('Name on Smoothie:')
 st.write('The name on your Smoothie will be:', name_on_order)
+
 try:
     cnx = st.connection("snowflake")
     session = cnx.session()
     
+    # Get fruit options from Snowflake
     my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
-    
+    fruit_list = [row["FRUIT_NAME"] for row in my_dataframe.collect()]
+
+    # Multiselect from fruit list
     ingredients_List = st.multiselect(
         'Choose up to 5 ingredients:',
-        my_dataframe,
+        fruit_list,
         max_selections=5
     )
-    
+
+    ingredients_string = ''
+
     if ingredients_List:
-        ingredients_string = ' '.join(ingredients_List)
-    
+        for fruit_chosen in ingredients_List:
+            ingredients_string += fruit_chosen + ' '
+
+            st.subheader(f"{fruit_chosen} Nutrition Information")
+
+            # API Call
+            smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{fruit_chosen}")
+            
+            if smoothiefroot_response.status_code == 200:
+                fruit_data = pd.json_normalize(smoothiefroot_response.json())
+                st.dataframe(data=fruit_data, use_container_width=True)
+            else:
+                st.warning(f"No data available for {fruit_chosen}")
+
+        # SQL Insert Statement
         my_insert_stmt = f"""
             INSERT INTO smoothies.public.orders(ingredients, name_on_order)
             VALUES ('{ingredients_string.strip()}', '{name_on_order}')
         """
-    
         st.write(my_insert_stmt)
-    
+
+        # Submit Button
         time_to_insert = st.button('Submit Order')
-    
+
         if time_to_insert:
             session.sql(my_insert_stmt).collect()
             st.success(f'Your Smoothie is ordered, {name_on_order}!', icon="✅")
 
 except Exception as e:
     st.error(f"An error occurred: {e}")
+
 
 
 smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
