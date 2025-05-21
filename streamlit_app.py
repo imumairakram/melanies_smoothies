@@ -26,22 +26,8 @@ try:
         max_selections=5
     )
 
-    ingredients_string = ''
-
     if ingredients_List:
-        for fruit_chosen in ingredients_List:
-            ingredients_string += fruit_chosen + ' '
-
-            st.subheader(f"{fruit_chosen} Nutrition Information")
-
-            # API Call
-            smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{fruit_chosen}")
-            
-            if smoothiefroot_response.status_code == 200:
-                fruit_data = pd.json_normalize(smoothiefroot_response.json())
-                st.dataframe(data=fruit_data, use_container_width=True)
-            else:
-                st.warning(f"No data available for {fruit_chosen}")
+        ingredients_string = ' '
 
         # SQL Insert Statement
         my_insert_stmt = f"""
@@ -49,10 +35,10 @@ try:
             VALUES ('{ingredients_string.strip()}', '{name_on_order}')
         """
         st.write(my_insert_stmt)
+        # st.write(f"Your smoothie '{name_on_order}' includes: {ingredients_string}")
 
         # Submit Button
         time_to_insert = st.button('Submit Order')
-
         if time_to_insert:
             session.sql(my_insert_stmt).collect()
             st.success(f'Your Smoothie is ordered, {name_on_order}!', icon="✅")
