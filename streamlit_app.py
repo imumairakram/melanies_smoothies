@@ -1,18 +1,17 @@
- # Import python packages
- import streamlit as st
- from snowflake.snowpark.functions import col
- import pandas as pd
- import requests
+import streamlit as st
+from snowflake.snowpark.functions import col
+import pandas as pd
+import requests
 
- # Title and description
- st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
- st.write("Choose the fruit you want in your custom smoothie!")
+# Title and description
+st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
+st.write("Choose the fruit you want in your custom smoothie!")
 
- # Text input for smoothie name
- name_on_order = st.text_input("Name of Smoothie")
- st.write("The name on your smoothie will be:", name_on_order)
+# Text input for smoothie name
+name_on_order = st.text_input("Name of Smoothie")
+st.write("The name on your smoothie will be:", name_on_order)
 
- # Snowflake connection
+# Snowflake connection
  try:
      cnx = st.connection("snowflake")
      session = cnx.session()
