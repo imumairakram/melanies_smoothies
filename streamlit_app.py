@@ -88,7 +88,7 @@ st.write("The name on your smoothie will be:", name_on_order)
 
 # Snowflake connection
 try:
-    cnx = st.connection("Snowflake")
+    cnx = st.connection("snowflake")
     session = cnx.session()
 
     # Query fruit options
