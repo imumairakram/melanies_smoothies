@@ -29,6 +29,12 @@ try:
     if ingredients_List:
         ingredients_string = ' '
 
+        for fruit_chosen in ingredients_List:
+        ingredients_string += fruit_chosen + ' '
+        st.subheader(f"{fruit_chosen} Nutrition Information")
+        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+        sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+
         # SQL Insert Statement
         my_insert_stmt = f"""
             INSERT INTO smoothies.public.orders(ingredients, name_on_order)
