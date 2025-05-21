@@ -32,8 +32,8 @@ try:
         for fruit_chosen in ingredients_List:
         ingredients_string += fruit_chosen + ' '
         st.subheader(f"{fruit_chosen} Nutrition Information")
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
-        sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+        # smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
+        # sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
 
         # SQL Insert Statement
         my_insert_stmt = f"""
@@ -49,10 +49,11 @@ try:
             session.sql(my_insert_stmt).collect()
             st.success(f'Your Smoothie is ordered, {name_on_order}!', icon="✅")
 
+    smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+    if smoothiefroot_response.status_code == 200:
+        st.write("Fruit API Response:", smoothiefroot_response.json())
+    else:
+        st.error("Failed to fetch data from the fruit API.")
 except Exception as e:
     st.error(f"An error occurred: {e}")
 
-
-
-smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True) 
