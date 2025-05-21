@@ -77,7 +77,7 @@
  import requests
 
  # Title and description
- st.title("My Parent's New Healthy Dinner")
+ st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
  st.write("Choose the fruit you want in your custom smoothie!")
 
  # Text input for smoothie name
