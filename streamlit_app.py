@@ -13,64 +13,62 @@ st.write("The name on your smoothie will be:", name_on_order)
 
 # Snowflake connection
 try:
-     cnx = st.connection("snowflake")
-     session = cnx.session()
+    cnx = st.connection("snowflake")
+    session = cnx.session()
 
-     # Query fruit options
-     my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'),col('SEARCH_ON')
-     # st.dataFrame(data = my_dataframe, use_container_width=True)
-     # st.stop()
+    # Query fruit options from Snowflake
+    snowflake_df = session.table("smoothies.public.fruit_options").select(
+        col("FRUIT_NAME"), col("SEARCH_ON")
+    )
+    pd_df = pd.DataFrame(snowflake_df.collect())
 
-     # Multiselect for ingredients
-     ingredients_list = st.multiselect(
-         'Choose up to 5 ingredients:',
-         fruit_options
-     )
+    # Create a map from FRUIT_NAME to SEARCH_ON
+    fruit_map = dict(zip(pd_df["FRUIT_NAME"], pd_df["SEARCH_ON"]))
+    fruit_options = list(fruit_map.keys())
 
-      if ingredients_list:
-        # Display chosen ingredients
+    # Multiselect for ingredients
+    ingredients_list = st.multiselect(
+        'Choose up to 5 ingredients:',
+        fruit_options,
+        max_selections=5
+    )
+
+    if ingredients_list:
+        # Combine ingredients into a single string
         ingredients_string = ', '.join(ingredients_list)
         st.write(f"Your smoothie '{name_on_order}' includes: {ingredients_string}")
 
-        # Show nutrition info for each ingredient using SEARCH_ON value
-        for fruit in ingredients_list:
-            api_fruit = fruit_map.get(fruit, fruit)
-            st.subheader(f"{fruit} Nutrition Info")
+        # Show nutrition info using SEARCH_ON for each selected fruit
+        for fruit_chosen in ingredients_list:
+            search_on = fruit_map.get(fruit_chosen)
 
-            search_on=pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-            # st.write('The search value for ', fruit_chosen,' is ', search_on, '.')
-            st.subheader(fruit_chosen + Nutrition Information') 
-            fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + search_on) 
-            fv_df st.dataframe(data=fruityvice_response.json(), use_container_width=True) 
-                    
-            
-            response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{api_fruit.lower()}")
-            if response.status_code == 200:
-                st.json(response.json())
+            st.subheader(f"{fruit_chosen} Nutrition Information")
+
+            # Call API using SEARCH_ON value
+            fruityvice_response = requests.get(f"https://fruityvice.com/api/fruit/{search_on}")
+            if fruityvice_response.status_code == 200:
+                fruity_data = fruityvice_response.json()
+                st.json(fruity_data)
             else:
-                st.warning(f"Nutrition info for {fruit} not found.")
-         
-          
-        # Parameterized SQL for safety
-         my_insert_stmt = """
-             INSERT INTO smoothies.public.orders (name, ingredients)
-             VALUES (%s, %s)
-         """
+                st.warning(f"Nutrition info for {fruit_chosen} not found.")
 
-         # Show the SQL statement for debugging
-         st.write(f"Your smoothie '{name_on_order}' includes: {ingredients_string}")
+        # Insert into Snowflake orders table
+        insert_stmt = f"""
+            INSERT INTO smoothies.public.orders (name, ingredients)
+            VALUES ('{name_on_order}', '{ingredients_string}')
+        """
 
-         # Button to submit order
-         time_to_insert = st.button("Submit Order")
-         if time_to_insert:
-             session.sql(my_insert_stmt, (name_on_order, ingredients_string)).collect()
-             st.success(f"Your Smoothie '{name_on_order}' is ordered!", icon="✅")
+        # Submit button
+        if st.button("Submit Order"):
+            session.sql(insert_stmt).collect()
+            st.success(f"Your Smoothie '{name_on_order}' is ordered!", icon="✅")
 
-     # Optional: Fetching fruit data from external API
-     smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-     if smoothiefroot_response.status_code == 200:
-         st.write("Fruit API Response:", smoothiefroot_response.json())
-     else:
-         st.error("Failed to fetch data from the fruit API.")
- except Exception as e:
-     st.error(f"An error occurred: {e}")
+    # Optional extra API preview (can be removed)
+    smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+    if smoothiefroot_response.status_code == 200:
+        st.write("Fruit API Response:", smoothiefroot_response.json())
+    else:
+        st.error("Failed to fetch data from the fruit API.")
+
+except Exception as e:
+    st.error(f"An error occurred: {e}")
