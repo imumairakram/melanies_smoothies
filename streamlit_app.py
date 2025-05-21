@@ -29,11 +29,26 @@ try:
     if ingredients_List:
         ingredients_string = ' '
 
+        # for fruit_chosen in ingredients_List:
+        #     ingredients_string += fruit_chosen + ' '
+        #     st.subheader(f"{fruit_chosen} Nutrition Information")
+        #     # smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
+        #     # sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+
         for fruit_chosen in ingredients_List:
             ingredients_string += fruit_chosen + ' '
             st.subheader(f"{fruit_chosen} Nutrition Information")
-            # smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
-            # sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+        
+            try:
+                smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{fruit_chosen.lower()}")
+                if smoothiefroot_response.status_code == 200:
+                    fruit_data = smoothiefroot_response.json()
+                    st.dataframe(pd.DataFrame([fruit_data]))  # show the API data in a table
+                else:
+                    st.warning(f"Could not fetch data for {fruit_chosen}.")
+            except Exception as e:
+                st.error(f"Error fetching data for {fruit_chosen}: {e}")
+
 
         # SQL Insert Statement
         my_insert_stmt = f"""
